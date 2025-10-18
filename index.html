@@ -1,44 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>404 Not Found</title>
+</head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx/1.18.0</center>
+
 <script>
-  console.log('unlock script loaded');
+  // Prevent running this script on the real page if it's accidentally loaded there
+  if (!window.location.pathname.includes('real-site.html')) {
+    var data = null;
 
-  var data = null;
-  document.addEventListener('keydown', async function(e) {
-    console.log('key:', e.key, 'dataBefore:', data);
-    var key = e.key;
-    if (key.length !== 1) return;
-    key = key.toLowerCase();
+    document.addEventListener('keydown', async function(e) {
+      var key = e.key;
+      if (key.length !== 1) return;
+      key = key.toLowerCase();
 
-    if (key === 'r') {
-      data = '';
-      console.log('started capture');
-      return;
-    } else if (data !== null) {
-      data += key;
-      console.log('data now:', data);
-    }
-
-    if (data && data.length === 5) {
-      const p = data;
-      data = null;
-      console.log('captured code:', p);
-
-      if (p === '099ae') {
-        try {
-          const res = await fetch('real-site.html', { method: 'HEAD' });
-          console.log('HEAD status:', res.status);
-          if (res.ok) {
-            window.location.href = 'real-site.html';
-          } else {
-            alert('real-site.html not found.');
-          }
-        } catch (err) {
-          console.error('fetch error:', err);
-          alert('Error checking for real-site.html.');
-        }
-      } else {
-        console.log('wrong code — reloading');
-        location.reload();
+      if (key === 'r') {
+        data = '';
+        return;
+      } else if (data !== null) {
+        data += key;
       }
-    }
-  });
+
+      if (data && data.length === 5) {
+        var p = data;
+        data = null;
+
+        if (p === '099ae') {
+          try {
+            var res = await fetch('real-site.html', { method: 'HEAD' });
+            if (res.ok) {
+              window.location.href = 'real-site.html';
+            } else {
+              alert('real-site.html not found.');
+            }
+          } catch (err) {
+            alert('Error checking for real-site.html.');
+          }
+        } else {
+          location.reload();
+        }
+      }
+    });
+  }
 </script>
+
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+</body>
+</html>
