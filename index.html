@@ -9,7 +9,61 @@
 <hr><center>nginx/1.18.0</center>
 
 <script>
-  // Prevent running this script on the real page if it's accidentally loaded there
+  // Inline loader function to fetch and inject real-site.html content
+  async function loadRealSiteInline(url) {
+    try {
+      const res = await fetch(url, { method: 'GET' });
+      if (!res.ok) {
+        alert(url + ' not found.');
+        return;
+      }
+
+      const text = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, 'text/html');
+
+      // Update document title
+      if (doc.title) document.title = doc.title;
+
+      // Append styles/meta/link from real-site.html head if not already present
+      const incomingHeadNodes = Array.from(doc.head ? doc.head.childNodes : []);
+      const head = document.head || document.getElementsByTagName('head')[0];
+      incomingHeadNodes.forEach(node => {
+        if (node.nodeName === 'LINK' || node.nodeName === 'META' || node.nodeName === 'STYLE') {
+          const exists = Array.from(head.childNodes).some(n => n.outerHTML === node.outerHTML);
+          if (!exists) head.appendChild(node.cloneNode(true));
+        }
+      });
+
+      // Replace body content with real-site.html body
+      const incomingBody = doc.body || doc;
+      document.body.innerHTML = incomingBody.innerHTML;
+
+      // Execute scripts from real-site.html
+      const incomingScripts = doc.querySelectorAll('script');
+      incomingScripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        for (let i = 0; i < oldScript.attributes.length; i++) {
+          const attr = oldScript.attributes[i];
+          newScript.setAttribute(attr.name, attr.value);
+        }
+        if (oldScript.src) {
+          newScript.src = oldScript.src;
+          document.body.appendChild(newScript);
+        } else {
+          newScript.textContent = oldScript.textContent;
+          document.body.appendChild(newScript);
+        }
+      });
+
+      window.scrollTo(0, 0);
+
+    } catch (err) {
+      alert('Error loading ' + url);
+    }
+  }
+
+  // Unlock code listener
   if (!window.location.pathname.includes('real-site.html')) {
     var data = null;
 
@@ -31,13 +85,13 @@
 
         if (p === '099ae') {
           try {
-            var res = await fetch('real-site.html', { method: 'HEAD' });
-            if (res.ok) {
-              window.location.href = 'real-site.html';
+            const headRes = await fetch('real-site.html', { method: 'HEAD' });
+            if (headRes.ok) {
+              await loadRealSiteInline('real-site.html');
             } else {
               alert('real-site.html not found.');
             }
-          } catch (err) {
+          } catch {
             alert('Error checking for real-site.html.');
           }
         } else {
