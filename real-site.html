@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folder Website Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #upload-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 3rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+            transform: translateY(-2px);
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        #viewer-frame {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        .error {
+            color: #e74c3c;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div id="upload-container">
+        <h1>📁 Folder Website Viewer</h1>
+        <p>Upload a folder containing an <strong>index.html</strong> file to view the complete website with all its resources.</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">⬆️</div>
+            <div class="upload-text">Click or drag folder here</div>
+        </div>
+        
+        <input type="file" id="folderInput" webkitdirectory directory multiple>
+        <div id="error" class="error"></div>
+    </div>
+
+    <iframe id="viewer-frame"></iframe>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const folderInput = document.getElementById('folderInput');
+        const uploadContainer = document.getElementById('upload-container');
+        const viewerFrame = document.getElementById('viewer-frame');
+        const errorDiv = document.getElementById('error');
+
+        let filesMap = {};
+
+        uploadArea.addEventListener('click', () => {
+            folderInput.click();
+        });
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        folderInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            errorDiv.textContent = '';
+            filesMap = {};
+            
+            let hasIndexHtml = false;
+            
+            for (let file of files) {
+                const path = file.webkitRelativePath || file.name;
+                filesMap[path] = file;
+                
+                if (path.endsWith('/index.html') || path === 'index.html') {
+                    hasIndexHtml = true;
+                }
+            }
+            
+            if (!hasIndexHtml) {
+                errorDiv.textContent = 'Error: No index.html found in the uploaded folder.';
+                return;
+            }
+            
+            loadWebsite();
+        }
+
+        async function loadWebsite() {
+            const indexPath = Object.keys(filesMap).find(path => 
+                path.endsWith('/index.html') || path === 'index.html'
+            );
+            
+            if (!indexPath) return;
+            
+            const basePath = indexPath.substring(0, indexPath.lastIndexOf('/') + 1);
+            
+            const indexFile = filesMap[indexPath];
+            const indexContent = await indexFile.text();
+            
+            const modifiedHtml = await processHtml(indexContent, basePath);
+            
+            const blob = new Blob([modifiedHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            uploadContainer.style.display = 'none';
+            viewerFrame.style.display = 'block';
+            viewerFrame.src = url;
+        }
+
+        async function processHtml(html, basePath) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            const elements = doc.querySelectorAll('[src], [href], link[rel="stylesheet"]');
+            
+            for (let el of elements) {
+                const attr = el.hasAttribute('src') ? 'src' : 'href';
+                const originalPath = el.getAttribute(attr);
+                
+                if (!originalPath || originalPath.startsWith('http://') || 
+                    originalPath.startsWith('https://') || originalPath.startsWith('data:') ||
+                    originalPath.startsWith('#')) {
+                    continue;
+                }
+                
+                const fullPath = basePath + originalPath.replace(/^\.\//, '');
+                
+                if (filesMap[fullPath]) {
+                    const file = filesMap[fullPath];
+                    const blob = await file.arrayBuffer();
+                    const mimeType = getMimeType(file.name);
+                    const dataUrl = arrayBufferToDataUrl(blob, mimeType);
+                    el.setAttribute(attr, dataUrl);
+                }
+            }
+            
+            const styles = doc.querySelectorAll('style');
+            for (let style of styles) {
+                style.textContent = await processCss(style.textContent, basePath);
+            }
+            
+            return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+        }
+
+        async function processCss(css, basePath) {
+            const urlRegex = /url\(['"]?([^'")\s]+)['"]?\)/g;
+            
+            let match;
+            while ((match = urlRegex.exec(css)) !== null) {
+                const url = match[1];
+                
+                if (url.startsWith('http://') || url.startsWith('https://') || 
+                    url.startsWith('data:')) {
+                    continue;
+                }
+                
+                const fullPath = basePath + url.replace(/^\.\//, '');
+                
+                if (filesMap[fullPath]) {
+                    const file = filesMap[fullPath];
+                    const blob = await file.arrayBuffer();
+                    const mimeType = getMimeType(file.name);
+                    const dataUrl = arrayBufferToDataUrl(blob, mimeType);
+                    css = css.replace(match[0], `url('${dataUrl}')`);
+                }
+            }
+            
+            return css;
+        }
+
+        function getMimeType(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const mimeTypes = {
+                'html': 'text/html',
+                'css': 'text/css',
+                'js': 'application/javascript',
+                'json': 'application/json',
+                'png': 'image/png',
+                'jpg': 'image/jpeg',
+                'jpeg': 'image/jpeg',
+                'gif': 'image/gif',
+                'svg': 'image/svg+xml',
+                'webp': 'image/webp',
+                'ico': 'image/x-icon',
+                'woff': 'font/woff',
+                'woff2': 'font/woff2',
+                'ttf': 'font/ttf',
+                'otf': 'font/otf',
+                'mp4': 'video/mp4',
+                'webm': 'video/webm',
+                'mp3': 'audio/mpeg',
+                'wav': 'audio/wav',
+                'pdf': 'application/pdf'
+            };
+            return mimeTypes[ext] || 'application/octet-stream';
+        }
+
+        function arrayBufferToDataUrl(buffer, mimeType) {
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            const base64 = btoa(binary);
+            return `data:${mimeType};base64,${base64}`;
+        }
+    </script>
+</body>
+</html>
