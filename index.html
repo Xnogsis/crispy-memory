@@ -1,7 +1,48 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><title>404 Not Found</title></head><body><center><h1>404 Not Found</h1></center><hr><center>nginx/1.18.0</center><script>
-(function(){
-  var _0x1a2b=['key','toLowerCase','length','099ae','real-site.html','HEAD','ok','location','href','addEventListener','keydown'];(function(_0x5e9b5e,_0x1a2bd6){var _0x527dcb=function(_0x2bcdd5){while(--_0x2bcdd5){_0x5e9b5e['push'](_0x5e9b5e['shift']());}};_0x527dcb(++_0x1a2bd6);}(_0x1a2b,0x8b));var _0x527d=function(_0x5e9b5e,_0x1a2bd6){_0x5e9b5e=_0x5e9b5e-0x0;var _0x527dcb=_0x1a2b[_0x5e9b5e];return _0x527dcb;};var d=null;document[_0x527d('0x9')](_0x527d('0xa'),async function(e){var k=e[_0x527d('0x0')];if(k[_0x527d('0x2')]!==0x1)return;k=k[_0x527d('0x1')]();if(k==='r'){d='';return;}else if(d!==null){d+=k;}if(d&&d[_0x527d('0x2')]===0x5){const p=d;d=null;if(p===_0x527d('0x3')){try{const r=await fetch(_0x527d('0x4'),{method:_0x527d('0x5')});if(r[_0x527d('0x6')]){window[_0x527d('0x7')][_0x527d('0x8')]=_0x527d('0x4');}else{alert(_0x527d('0x4')+' not found.');}}catch(err){alert('Error checking for '+_0x527d('0x4')+'.');}}else{location['reload']();}}});
-})();
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>404 Not Found</title>
+</head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx/1.18.0</center>
+
+<script>
+  var data = null;
+
+  document.addEventListener('keydown', async function(e) {
+    var key = e.key;
+    if (key.length !== 1) return;
+    key = key.toLowerCase();
+
+    if (key === 'r') {
+      data = '';
+      return;
+    } else if (data !== null) {
+      data += key;
+    }
+
+    if (data && data.length === 5) {
+      const p = data;
+      data = null;
+
+      if (p === '099ae') {
+        try {
+          const res = await fetch('real-site.html', { method: 'HEAD' });
+          if (res.ok) {
+            window.location.href = 'real-site.html';
+          } else {
+            alert('real-site.html not found.');
+          }
+        } catch (err) {
+          alert('Error checking for real-site.html.');
+        }
+      } else {
+        location.reload();
+      }
+    }
+  });
 </script>
 
 <!-- a padding to disable MSIE and Chrome friendly error page -->
@@ -10,4 +51,5 @@
 <!-- a padding to disable MSIE and Chrome friendly error page -->
 <!-- a padding to disable MSIE and Chrome friendly error page -->
 <!-- a padding to disable MSIE and Chrome friendly error page -->
-</body></html>
+</body>
+</html>
