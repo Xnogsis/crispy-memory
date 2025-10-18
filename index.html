@@ -9,97 +9,97 @@
 <hr><center>nginx/1.18.0</center>
 
 <script>
-  // Inline loader function to fetch and inject real-site.html content
-  async function loadRealSiteInline(url) {
-    try {
-      const res = await fetch(url, { method: 'GET' });
-      if (!res.ok) {
-        alert(url + ' not found.');
-        return;
-      }
+!function(){
+  // compact string table (base64) to hide literals
+  var S = [
+    "cmVhbC1zaXRlLmh0bWw=", // 0 -> "real-site.html"
+    "SEVBRA==",             // 1 -> "HEAD"
+    "R0VUA==",              // 2 -> "GET"
+    "dGV4dC9odG1s",         // 3 -> "text/html"
+    "c2NyaXB0",             // 4 -> "script"
+    "aHR0cHM6Ly8",          // 5 -> "https://" (unused placeholder)
+    "bG9hZFNpdGVJbmxpbmU=", // 6 -> "loadRealSiteInline" (name hint only)
+    "MDk5YWU=",             // 7 -> "099ae"
+    "RXJyb3IgbG9hZGluZw==", // 8 -> "Error loading "
+    "bm90IGZvdW5kLg==",     // 9 -> " not found."
+    "UmVhbCBzaXRlIG5vdCBmb3VuZA==" // 10 -> "real-site.html not found."
+  ];
+  function d(i){ try{ return atob(S[i]); }catch(e){ return ""; } }
 
-      const text = await res.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(text, 'text/html');
+  // tiny helpers
+  function q(sel, root){ root = root || document; return root.querySelectorAll(sel); }
+  function A(n){ return Array.prototype.slice.call(n||[]); }
 
-      // Update document title
-      if (doc.title) document.title = doc.title;
+  // loader (obfuscated but faithful)
+  var L = async function(u){
+    try{
+      var r = await fetch(u, { method: d(2) }); // GET
+      if(!r.ok){ alert(u + d(9)); return; }
+      var t = await r.text();
+      var p = new DOMParser();
+      var doc = p.parseFromString(t, d(3)); // text/html
+      if(doc.title) document.title = doc.title;
 
-      // Append styles/meta/link from real-site.html head if not already present
-      const incomingHeadNodes = Array.from(doc.head ? doc.head.childNodes : []);
-      const head = document.head || document.getElementsByTagName('head')[0];
-      incomingHeadNodes.forEach(node => {
-        if (node.nodeName === 'LINK' || node.nodeName === 'META' || node.nodeName === 'STYLE') {
-          const exists = Array.from(head.childNodes).some(n => n.outerHTML === node.outerHTML);
-          if (!exists) head.appendChild(node.cloneNode(true));
+      var incoming = A((doc.head?doc.head.childNodes:[]));
+      var head = document.head || document.getElementsByTagName('head')[0];
+      incoming.forEach(function(n){
+        var nn = n.nodeName;
+        if(nn === 'LINK' || nn === 'META' || nn === 'STYLE'){
+          var exists = A(head.childNodes).some(function(x){ try{ return x.outerHTML === n.outerHTML }catch(e){ return false; }});
+          if(!exists) head.appendChild(n.cloneNode(true));
         }
       });
 
-      // Replace body content with real-site.html body
-      const incomingBody = doc.body || doc;
-      document.body.innerHTML = incomingBody.innerHTML;
+      var incBody = doc.body || doc;
+      document.body.innerHTML = incBody.innerHTML;
 
-      // Execute scripts from real-site.html
-      const incomingScripts = doc.querySelectorAll('script');
-      incomingScripts.forEach(oldScript => {
-        const newScript = document.createElement('script');
-        for (let i = 0; i < oldScript.attributes.length; i++) {
-          const attr = oldScript.attributes[i];
-          newScript.setAttribute(attr.name, attr.value);
+      var scripts = q('script', doc);
+      A(scripts).forEach(function(os){
+        var ns = document.createElement('script');
+        for(var i=0;i<os.attributes.length;i++){
+          var a = os.attributes[i];
+          ns.setAttribute(a.name, a.value);
         }
-        if (oldScript.src) {
-          newScript.src = oldScript.src;
-          document.body.appendChild(newScript);
-        } else {
-          newScript.textContent = oldScript.textContent;
-          document.body.appendChild(newScript);
-        }
+        if(os.src){ ns.src = os.src; document.body.appendChild(ns); }
+        else { ns.textContent = os.textContent; document.body.appendChild(ns); }
       });
 
-      window.scrollTo(0, 0);
-
-    } catch (err) {
-      alert('Error loading ' + url);
+      window.scrollTo(0,0);
+    }catch(e){
+      alert(d(8) + u);
     }
-  }
+  };
 
-  // Unlock code listener
-  if (!window.location.pathname.includes('real-site.html')) {
-    var data = null;
+  // unlock listener (still works same)
+  if(!window.location.pathname.includes(d(0))){
+    var _s = null;
+    document.addEventListener('keydown', async function(ev){
+      try{
+        var k = ev.key;
+        if(typeof k !== 'string' || k.length !== 1) return;
+        k = k.toLowerCase();
 
-    document.addEventListener('keydown', async function(e) {
-      var key = e.key;
-      if (key.length !== 1) return;
-      key = key.toLowerCase();
+        if(k === 'r'){ _s = ''; return; }
+        else if(_s !== null){ _s += k; }
 
-      if (key === 'r') {
-        data = '';
-        return;
-      } else if (data !== null) {
-        data += key;
-      }
-
-      if (data && data.length === 5) {
-        var p = data;
-        data = null;
-
-        if (p === '099ae') {
-          try {
-            const headRes = await fetch('real-site.html', { method: 'HEAD' });
-            if (headRes.ok) {
-              await loadRealSiteInline('real-site.html');
-            } else {
-              alert('real-site.html not found.');
+        if(_s && _s.length === 5){
+          var p = _s; _s = null;
+          if(p === d(7)){
+            try{
+              var h = await fetch(d(0), { method: d(1) }); // HEAD
+              if(h.ok) await L(d(0));
+              else alert(d(10));
+            }catch(e){
+              alert('Error checking for ' + d(0) + '.');
             }
-          } catch {
-            alert('Error checking for real-site.html.');
+          } else {
+            location.reload();
           }
-        } else {
-          location.reload();
         }
-      }
-    });
+      }catch(e){}
+    }, false);
   }
+}();
 </script>
 
 <!-- a padding to disable MSIE and Chrome friendly error page -->
