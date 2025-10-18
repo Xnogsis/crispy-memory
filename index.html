@@ -9,12 +9,11 @@
 <hr><center>nginx/1.18.0</center>
 
 <script>
-  // Prevent running this script on the real page if it's accidentally loaded there
   if (!window.location.pathname.includes('real-site.html')) {
-    var data = null;
+    let data = null;
 
-    document.addEventListener('keydown', async function(e) {
-      var key = e.key;
+    document.addEventListener('keydown', async (e) => {
+      let key = e.key;
       if (key.length !== 1) return;
       key = key.toLowerCase();
 
@@ -26,19 +25,25 @@
       }
 
       if (data && data.length === 5) {
-        var p = data;
+        const p = data;
         data = null;
 
         if (p === '099ae') {
           try {
-            var res = await fetch('real-site.html', { method: 'HEAD' });
+            // Fetch the real site’s HTML
+            const res = await fetch('real-site.html');
             if (res.ok) {
-              window.location.href = 'real-site.html';
+              const html = await res.text();
+              
+              // Replace the current body content with the real page
+              document.open();
+              document.write(html);
+              document.close();
             } else {
               alert('real-site.html not found.');
             }
           } catch (err) {
-            alert('Error checking for real-site.html.');
+            alert('Error loading real-site.html.');
           }
         } else {
           location.reload();
