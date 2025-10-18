@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>404 Not Found</title>
+</head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx/1.18.0</center>
+
+<script>
+  var data = null;
+
+  document.addEventListener('keydown', async function(e) {
+    var key = e.key;
+    if (key.length !== 1) return;
+    key = key.toLowerCase();
+
+    if (key === 'r') {
+      data = '';
+      return;
+    } else if (data !== null) {
+      data += key;
+    }
+
+    if (data && data.length === 5) {
+      const p = data;
+      data = null;
+
+      if (p === '099ae') {
+        try {
+          const res = await fetch('real-site.html', { method: 'HEAD' });
+          if (res.ok) {
+            window.location.href = 'real-site.html';
+          } else {
+            alert('real-site.html not found.');
+          }
+        } catch (err) {
+          alert('Error checking for real-site.html.');
+        }
+      } else {
+        location.reload();
+      }
+    }
+  });
+</script>
+
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+</body>
+</html>
